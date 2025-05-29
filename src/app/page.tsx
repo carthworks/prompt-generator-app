@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Alert, Badge, Spinner } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { eventNames } from 'node:process';
+import { openDB } from 'idb';
 
 const promptTemplates = {
   text: `Use this template for Text Models (e.g., ChatGPT, Claude, Gemini):\n\nGoal: {{goal}}\nContext: {{context}}\nTone: {{tone}}\nStyle: {{style}}\nOutput format: {{format}}\nSpecial instructions: {{instructions}}`,
@@ -281,18 +281,60 @@ export default function Home() {
                   </Button>
                 )}
               </div>
+              {/* <Form.Group className="mb-3">
+                <Form.Label>Generated Prompt</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  rows={4}
+                  value={inputs}
+                  onChange={(e) => setInputs(e.target.value)}
+                  placeholder="Your prompt will appear here..."
+                />
+              </Form.Group> */}
             </motion.div>
           )}
           {promptHistory.length > 0 && (
-            <div className="mt-4 p-4 border rounded shadow bg-light">
+            <div 
+              className="mt-4 p-4 border rounded shadow bg-light" 
+              style={{ maxHeight: '400px', overflowY: 'auto' }}
+              onClick={() => {
+                // Fallback to localStorage since openDB is not defined
+                const savedPrompts = localStorage.getItem('promptHistory');
+                if (savedPrompts) {
+                  setPromptHistory(JSON.parse(savedPrompts));
+                }
+              }}
+            >
               <h6 className="mb-3">Recent Prompts:</h6>
               {promptHistory.map((prompt, index) => (
-                <div key={index} className="mb-2 small">
+                <div key={index} className="mb-2 small position-relative">
+                  <Button 
+                    variant="link" 
+                    className="position-absolute top-0 end-0 text-danger p-0" 
+                    style={{ fontSize: '1.2rem' }}
+                    onClick={async () => {
+                      try {
+                        const db = await openDB('promptGeneratorDB', 1);
+                        const tx = db.transaction(['prompts'], 'readwrite');
+                        const store = tx.objectStore('prompts');
+                        await store.delete(prompt.timestamp);
+                        await tx.done;
+                        
+                        // Update state after deletion
+                        setPromptHistory(prev => prev.filter(p => p.timestamp !== prompt.timestamp));
+                      } catch (error) {
+                        console.error('Error deleting prompt:', error);
+                      }
+                    }}
+                  >
+                    ×
+                  </Button>
                   <Badge bg="secondary" className="me-2">
                     {prompt?.type || 'Unknown'}
                   </Badge>
                   <span className="me-2">
-                    {new Date(prompt.timestamp).toLocaleDateString()}
+                    {new Date(prompt.timestamp).toLocaleDateString()} {new Date(prompt.timestamp).toLocaleTimeString()}
                   </span>
                   <div className="mt-1 p-2 border rounded">
                     <div className="text-muted small">Final Prompt:</div>
@@ -307,4 +349,5 @@ export default function Home() {
     </Container>
   );
 }
+
 
