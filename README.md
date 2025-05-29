@@ -35,3 +35,7 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 "# prompt-generator-app" 
+
+![image](https://github.com/user-attachments/assets/366912a4-af64-4a0d-a861-eaff4d5b726e)
+
+ tab
