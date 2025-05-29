@@ -29,7 +29,7 @@ export default function Home() {
   }, []);
 
   const handleChange = (ev) => {
-    const { name, value } = eventNames.target;
+    const { name, value } = ev.target;
     setInputs((prev) => ({
       ...prev,
       [name]: value
@@ -289,7 +289,7 @@ export default function Home() {
               {promptHistory.map((prompt, index) => (
                 <div key={index} className="mb-2 small">
                   <Badge bg="secondary" className="me-2">
-                    {prompt.type}
+                    {prompt?.type || 'Unknown'}
                   </Badge>
                   <span className="me-2">
                     {new Date(prompt.timestamp).toLocaleDateString()}
