@@ -85,7 +85,7 @@ export default function Home() {
         <Form.Group className="mb-3" controlId={field}>
           <Form.Label className="d-flex align-items-center">
             <span className="text-capitalize">{field.replace(/_/g, ' ')}</span>
-            <Badge bg="secondary" className="ms-2">Required</Badge>
+            <span className="text-danger ms-2">*</span>
           </Form.Label>
           <Form.Control
             type="text"
@@ -203,48 +203,86 @@ export default function Home() {
                 as="textarea" 
                 rows={8} 
                 value={finalPrompt}
-                onClick={() => {
-                  const savedPrompts = localStorage.getItem('promptHistory');
-                  if (savedPrompts) {
-                    const parsedPrompts = JSON.parse(savedPrompts);
-                    setPromptHistory(parsedPrompts);
-                  }
-                }}
                 readOnly
                 className="mb-3"
                 onClick={async () => {
-                  // Open IndexedDB database
-                  const db = await indexedDB.open('promptGeneratorDB', 1);
-                  
-                  db.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains('prompts')) {
-                      db.createObjectStore('prompts', { keyPath: 'timestamp' });
+                  try {
+                    const db = await openDB('promptGeneratorDB', 1, {
+                      upgrade(db) {
+                        if (!db.objectStoreNames.contains('prompts')) {
+                          db.createObjectStore('prompts', { keyPath: 'timestamp' });
+                          db.createObjectStore('finalPrompt', { keyPath: 'finalPrompt' });
+                        }
+                      },
+                    });
+
+                    // Add final prompt to database
+                    const tx = db.transaction(['finalPrompt'], 'readwrite');
+                    const store = tx.objectStore('finalPrompt');
+                    await store.add({
+                      finalPrompt,
+                      timestamp: new Date().toISOString()
+                    });
+                    await tx.done;
+
+                    const prompts = await db.getAll('prompts');
+                    setPromptHistory(prompts);
+                  } catch (error) {
+                    console.error('Error accessing IndexedDB:', error);
+                    // Fallback to localStorage
+                    const savedPrompts = localStorage.getItem('promptHistory');
+                    if (savedPrompts) {
+                      setPromptHistory(JSON.parse(savedPrompts));
                     }
-                  };
-
-                  db.onsuccess = (event) => {
-                    const db = event.target.result;
-                    const transaction = db.transaction(['prompts'], 'readonly');
-                    const store = transaction.objectStore('prompts');
-                    const request = store.getAll();
-
-                    request.onsuccess = () => {
-                      setPromptHistory(request.result);
-                    };
-                  };
+                  }
                 }}
               />
-              <Button
-                variant="outline-success"
-                className="w-100"
-                onClick={handleCopyToClipboard}
-              >
-                📋 Copy to Clipboard
-              </Button>
+              <div className="d-grid gap-2">
+                <Button
+                  variant="outline-success"
+                  onClick={handleCopyToClipboard}
+                >
+                  📋 Copy to Clipboard
+                </Button>
+                {type === 'text' && (
+                  <Button
+                    variant="outline-primary"
+                    href="https://chat.openai.com"
+                    target="_blank"
+                  >
+                    🤖 Open in ChatGPT
+                  </Button>
+                )}
+                {type === 'image' && (
+                  <Button
+                    variant="outline-primary"
+                    href="https://www.midjourney.com"
+                    target="_blank"
+                  >
+                    🎨 Open in Midjourney
+                  </Button>
+                )}
+                {type === 'code' && (
+                  <Button
+                    variant="outline-primary"
+                    href="https://github.com/features/copilot"
+                    target="_blank"
+                  >
+                    💻 Open GitHub Copilot
+                  </Button>
+                )}
+                {type === 'audio' && (
+                  <Button
+                    variant="outline-primary"
+                    href="https://elevenlabs.io"
+                    target="_blank"
+                  >
+                    🎵 Open in ElevenLabs
+                  </Button>
+                )}
+              </div>
             </motion.div>
           )}
-
           {promptHistory.length > 0 && (
             <div className="mt-4 p-4 border rounded shadow bg-light">
               <h6 className="mb-3">Recent Prompts:</h6>
@@ -253,7 +291,13 @@ export default function Home() {
                   <Badge bg="secondary" className="me-2">
                     {prompt.type}
                   </Badge>
-                  {new Date(prompt.timestamp).toLocaleDateString()}
+                  <span className="me-2">
+                    {new Date(prompt.timestamp).toLocaleDateString()}
+                  </span>
+                  <div className="mt-1 p-2 border rounded">
+                    <div className="text-muted small">Final Prompt:</div>
+                    {prompt.content}
+                  </div>
                 </div>
               ))}
             </div>
@@ -263,3 +307,4 @@ export default function Home() {
     </Container>
   );
 }
+
