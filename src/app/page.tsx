@@ -7,6 +7,12 @@ import { openDB } from 'idb';
 
 type PromptType = 'text' | 'image' | 'code' | 'audio';
 
+interface PromptHistoryItem {
+  type: PromptType;
+  content: string;
+  timestamp: string;
+}
+
 const promptTemplates: Record<PromptType, string> = {
   text: `Use this template for Text Models (e.g., ChatGPT, Claude, Gemini):\n\nGoal: {{goal}}\nContext: {{context}}\nTone: {{tone}}\nStyle: {{style}}\nOutput format: {{format}}\nSpecial instructions: {{instructions}}`,
   image: `Use this template for Image Models (e.g., DALL·E, Midjourney, SDXL):\n\nSubject: {{subject}}\nScene description: {{scene}}\nLighting: {{lighting}}\nArt style: {{style}}\nResolution/aspect: {{resolution}}\nSpecial instructions: {{instructions}}`,
@@ -20,7 +26,7 @@ export default function Home() {
   const [finalPrompt, setFinalPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCopyAlert, setShowCopyAlert] = useState(false);
-  const [promptHistory, setPromptHistory] = useState([]);
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryItem[]>([]);
 
   useEffect(() => {
     // Load saved prompts from localStorage
@@ -45,7 +51,7 @@ export default function Home() {
       const filledPrompt = template.replace(/{{(.*?)}}/g, (_, key) => inputs[key.trim()] || '[NOT SPECIFIED]');
       
       // Add to history
-      const newPrompt = {
+      const newPrompt: PromptHistoryItem = {
         type,
         content: filledPrompt,
         timestamp: new Date().toISOString()
@@ -351,5 +357,4 @@ export default function Home() {
     </Container>
   );
 }
-
 
