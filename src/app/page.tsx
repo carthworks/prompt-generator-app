@@ -5,7 +5,9 @@ import { Container, Form, Button, Row, Col, Alert, Badge, Spinner } from 'react-
 import { motion } from 'framer-motion';
 import { openDB } from 'idb';
 
-const promptTemplates = {
+type PromptType = 'text' | 'image' | 'code' | 'audio';
+
+const promptTemplates: Record<PromptType, string> = {
   text: `Use this template for Text Models (e.g., ChatGPT, Claude, Gemini):\n\nGoal: {{goal}}\nContext: {{context}}\nTone: {{tone}}\nStyle: {{style}}\nOutput format: {{format}}\nSpecial instructions: {{instructions}}`,
   image: `Use this template for Image Models (e.g., DALL·E, Midjourney, SDXL):\n\nSubject: {{subject}}\nScene description: {{scene}}\nLighting: {{lighting}}\nArt style: {{style}}\nResolution/aspect: {{resolution}}\nSpecial instructions: {{instructions}}`,
   code: `Use this template for Code Models (e.g., GitHub Copilot, CodeWhisperer):\n\nLanguage: {{language}}\nGoal: {{goal}}\nContext: {{context}}\nConstraints: {{constraints}}\nExpected output: {{output}}\nSpecial instructions: {{instructions}}`,
@@ -13,8 +15,8 @@ const promptTemplates = {
 };
 
 export default function Home() {
-  const [type, setType] = useState('text');
-  const [inputs, setInputs] = useState({});
+  const [type, setType] = useState<PromptType>('text');
+  const [inputs, setInputs] = useState<Record<string, string>>({});
   const [finalPrompt, setFinalPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCopyAlert, setShowCopyAlert] = useState(false);
