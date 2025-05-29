@@ -38,10 +38,10 @@ export default function Prompt() {
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
-      let template = promptTemplates[type];
+      const template = promptTemplates[type];
       const filledPrompt = template.replace(/{{(.*?)}}/g, (_, key) => inputs[key.trim()] || '[NOT SPECIFIED]');
       
-      // Add to history
+      // Add to history"prompt-generator
       const newPrompt = {
         type,
         content: filledPrompt,
