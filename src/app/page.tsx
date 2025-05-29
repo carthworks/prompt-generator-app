@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Alert, Badge, Spinner } from 'react-bootstrap';
 import { motion } from 'framer-motion';
+import { eventNames } from 'node:process';
 
 const promptTemplates = {
   text: `Use this template for Text Models (e.g., ChatGPT, Claude, Gemini):\n\nGoal: {{goal}}\nContext: {{context}}\nTone: {{tone}}\nStyle: {{style}}\nOutput format: {{format}}\nSpecial instructions: {{instructions}}`,
@@ -27,8 +28,8 @@ export default function Home() {
     }
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (ev) => {
+    const { name, value } = eventNames.target;
     setInputs((prev) => ({
       ...prev,
       [name]: value
@@ -38,7 +39,7 @@ export default function Home() {
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
-      let template = promptTemplates[type];
+      const template = promptTemplates[type];
       const filledPrompt = template.replace(/{{(.*?)}}/g, (_, key) => inputs[key.trim()] || '[NOT SPECIFIED]');
       
       // Add to history

@@ -27,8 +27,8 @@ export default function Prompt() {
     }
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (env) => {
+    const { name, value } = env.target;
     setInputs((prev) => ({
       ...prev,
       [name]: value
